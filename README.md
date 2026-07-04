@@ -7,10 +7,12 @@ Menú digital interactivo para el restaurante **Los Arcos de Doña Julia**, ubic
 ## Archivo principal
 
 ```
-Menu Los Arcos de Dona Julia.html
+index.html
 ```
 
-Archivo HTML único y autónomo. No requiere servidor, framework ni dependencias externas (excepto Google Fonts). Se abre directamente en cualquier navegador.
+Archivo HTML único y autónomo (app completa: bienvenida, menú y panel administrador). No requiere servidor, framework ni dependencias externas. Se abre directamente en cualquier navegador. Todas las imágenes (logos y fotos de platillos) van embebidas en base64, por lo que el archivo pesa ~15 MB.
+
+> `menu.html` es una versión previa/alterna que contiene únicamente la pantalla de menú con su propio panel administrador independiente (misma contraseña, mismo esquema de 5 taps). Se conserva como respaldo, pero `index.html` es el archivo vigente.
 
 ---
 
@@ -20,16 +22,19 @@ Archivo HTML único y autónomo. No requiere servidor, framework ni dependencias
 
 1. Escanear el código QR en la mesa.
 2. El menú se abre en el navegador del celular.
-3. Navegar por categorías usando las pestañas superiores o usar el buscador.
+3. Navegar por categorías usando las pestañas superiores o usar el buscador (ícono de lupa en la barra superior).
+4. Contactar directamente por WhatsApp con el botón flotante (mensaje prellenado).
 
 ### Administrador
 
 1. Tocar el escudo/logo **5 veces consecutivas** (en menos de 2 segundos) desde la pantalla de bienvenida.
 2. Ingresar la contraseña: `admin1234arcos`
 3. Desde el panel se puede:
+   - Ver estadísticas rápidas (platillos activos, inactivos, de fin de semana).
+   - Activar/desactivar cada platillo directamente desde la lista (toggle), sin entrar al modal de edición.
    - Editar nombre, descripción y precio de cualquier platillo.
-   - Activar/desactivar platillos (por ejemplo, marcar como "agotado").
    - Asignar o quitar insignias.
+   - Cambiar o quitar la foto del platillo (se comprime automáticamente antes de guardarse).
 
 > Los cambios del administrador se guardan en `localStorage` del navegador del dispositivo. Es recomendable usar siempre el mismo dispositivo para administrar el menú.
 
@@ -37,14 +42,18 @@ Archivo HTML único y autónomo. No requiere servidor, framework ni dependencias
 
 ## Estructura del menú
 
-| Sección          | Contenido                                                      |
-|------------------|----------------------------------------------------------------|
-| **Desayunos**    | Huevos, chilaquiles, quesadillas, lechuzas                    |
-| **Gorditas y Sopes** | Gorditas normales y especiales, sopes                     |
-| **Comidas**      | Enmoladas, enchiladas, flautas, carnes, antojitos              |
-| **Especialidades** | Menudo, barbacoa de borrego, mole, guacamole, platillo del día |
-| **Infantil**     | Salchipulpos, nuggets, hamburguesa, papas, hot cakes           |
-| **Bebidas**      | Refrescos, café de olla, aguas, licuados, cervezas, micheladas |
+71 platillos organizados en 6 categorías:
+
+| Sección              | Platillos | Contenido                                                      |
+|----------------------|:---------:|-----------------------------------------------------------------|
+| **Desayunos**        | 19        | Huevos, chilaquiles, quesadillas, lechuzas                       |
+| **Gorditas y Sopes**  | 4         | Gorditas normales y especiales, sopes                            |
+| **Comidas**          | 25        | Enmoladas, enchiladas, flautas, carnes, antojitos                |
+| **Especialidades**   | 6         | Menudo, barbacoa de borrego, mole, guacamole, platillo del día   |
+| **Infantil**         | 5         | Salchipulpos, nuggets, hamburguesa, papas, hot cakes             |
+| **Bebidas**          | 12        | Refrescos, café de olla, aguas, licuados, cervezas, micheladas   |
+
+Algunos platillos (Menudo, Caldo de Menudo, Barbacoa de Borrego, Aguas frescas, Limonada/Naranjada Mineral) usan **precios por variante** (chico/mediano/grande, por kilo, por taco, etc.) en vez de un precio único. "Platillo del Día" es un ítem especial sin precio fijo que invita a preguntar al mesero.
 
 ---
 
@@ -65,24 +74,23 @@ Archivo HTML único y autónomo. No requiere servidor, framework ni dependencias
 
 ## Imágenes de platillos
 
-El menú incluye 10 fotografías generadas por IA (Higgsfield) embebidas directamente en el HTML como base64. Cada imagen está optimizada a 300x300px JPEG (~30 KB cada una) para carga rápida en móvil.
+70 de los 71 platillos tienen foto (objeto `ITEM_IMAGES` en `index.html`), embebidas en base64 directamente en el HTML. El único platillo sin imagen fija es "Platillo del Día" (cambia diario, no aplica foto).
 
-| Imagen                       | Platillo                  | Sección         |
-|------------------------------|---------------------------|-----------------|
-| Chilaquiles con pollo        | Chilaquiles con pollo     | Desayunos       |
-| Huevos Rancheros             | Huevos Rancheros          | Desayunos       |
-| Enchiladas Potosinas         | Enchiladas potosinas      | Comidas         |
-| Barbacoa de Borrego          | Barbacoa de Borrego       | Especialidades  |
-| Menudo                       | Menudo                    | Especialidades  |
-| Mole con pollo               | Mole con pollo / cerdo    | Especialidades  |
-| Gorditas                     | Gordita y Gordita Especial| Gorditas y Sopes|
-| Arrachera                    | Arrachera                 | Comidas         |
-| Café de olla                 | Café de olla              | Bebidas         |
-| Agua de jamaica              | Agua de sabor             | Bebidas         |
+Desde el panel administrador se puede reemplazar o quitar la foto de cualquier platillo individualmente: la nueva imagen se comprime automáticamente en el navegador (canvas + `toDataURL`) antes de guardarse en `localStorage`, sin necesidad de subir archivos a un servidor.
 
-Los platillos sin imagen muestran un placeholder con patrón diagonal.
+Las imágenes originales en alta resolución (2048x2048) se encuentran en la carpeta `Imágenes/` como respaldo/fuente.
 
-Las imágenes originales en alta resolución (2048x2048) se encuentran en la carpeta `Imágenes/`.
+---
+
+## Pantalla de bienvenida
+
+Entre el botón "Ver Menú" y la dirección del local se muestran tres leyendas informativas:
+
+- Aceptamos tarjeta de débito/crédito 💳
+- Generamos factura 🧾
+- Tenemos todo para tu evento. Cotiza 🎉
+
+Se ubican en `index.html` (bloque justo debajo del botón `btn-ver-menu`). El logotipo "Los Arcos de Doña Julia" de esta pantalla usa una versión recortada (sin el margen transparente que traía el PNG original) para evitar espacio en blanco excesivo entre el escudo, el nombre y el botón.
 
 ---
 
@@ -102,25 +110,25 @@ Las imágenes originales en alta resolución (2048x2048) se encuentran en la car
 
 ## Tecnología
 
-| Componente      | Detalle                                          |
-|-----------------|--------------------------------------------------|
-| Estructura      | HTML5 semántico                                  |
-| Estilos         | CSS3 con variables inline (sin frameworks)       |
-| Lógica          | JavaScript vanilla (sin dependencias)            |
-| Persistencia    | `localStorage` para cambios del administrador    |
-| Fuentes         | Google Fonts (Playfair Display, DM Sans)         |
-| Imágenes        | Base64 embebido (archivo 100% autónomo)          |
-| Diseño          | Mobile-first, optimizado para 360px–430px        |
+| Componente      | Detalle                                                                 |
+|-----------------|--------------------------------------------------------------------------|
+| Estructura      | HTML5, un solo archivo con 3 pantallas (`.screen`) alternadas por JS     |
+| Estilos         | CSS inline por elemento (sin frameworks, sin hoja de estilos separada)   |
+| Lógica          | JavaScript vanilla (IIFE, sin dependencias ni build step)                |
+| Persistencia    | `localStorage`: `arcos_menu_v1` (platillos) y `arcos_images_v1` (fotos)  |
+| Fuentes         | Playfair Display y DM Sans referenciadas por nombre; no se cargan desde ningún CDN, así que el navegador usa su fuente del sistema como respaldo |
+| Imágenes        | Base64 embebido (archivo 100% autónomo, ~15 MB)                         |
+| Diseño          | Mobile-first, optimizado para 360px–430px                               |
 
 ---
 
 ## Pantallas
 
-1. **Bienvenida** — Logo, lema, botón "Ver Menú" y datos de contacto.
+1. **Bienvenida** — Logo, lema, botón "Ver Menú", leyendas de pago/factura/eventos y datos de contacto.
 2. **Menú** — Pestañas por categoría, buscador, tarjetas de platillos con imagen, insignias y precio.
 3. **Login Admin** — Pantalla de contraseña (acceso oculto vía 5 taps en el logo).
-4. **Panel Admin** — Lista de platillos con toggles de activación y botones de edición.
-5. **Modal de Edición** — Formulario para editar nombre, descripción, precio e insignias.
+4. **Panel Admin** — Estadísticas rápidas y lista de platillos con toggles de activación y botones de edición.
+5. **Modal de Edición** — Formulario para editar nombre, descripción, precio, insignias y foto del platillo.
 
 ---
 
@@ -128,8 +136,8 @@ Las imágenes originales en alta resolución (2048x2048) se encuentran en la car
 
 ```
 Los Arcos de Doña Julia/
-├── Menu Los Arcos de Dona Julia.html   ← Menú digital (archivo principal)
-├── menu.html                           ← Versión anterior del menú
+├── index.html                          ← App completa (archivo principal)
+├── menu.html                           ← Versión anterior, solo menú + panel admin propio
 ├── menu.md                             ← Contenido del menú en Markdown
 ├── menu26.pdf                          ← Menú original en PDF
 ├── Brief_Menu_Interactivo.md           ← Brief del proyecto
@@ -138,18 +146,7 @@ Los Arcos de Doña Julia/
 ├── Logo1 Trans.png                     ← Logo fondo transparente
 ├── Logo2.png                           ← Logo alternativo
 ├── Logo3.png                           ← Logo escudo ilustrado
-├── Imágenes/
-│   ├── Imagen Muestra.png              ← Referencia visual (plato de barro)
-│   ├── 01_Chilaquiles_con_Pollo.jpeg   ← 2048x2048
-│   ├── 02_Huevos_Rancheros.jpeg
-│   ├── 03_Enchiladas_Potosinas.jpeg
-│   ├── 04_Barbacoa_de_Borrego.jpeg
-│   ├── 05_Menudo.jpeg
-│   ├── 06_Mole_con_Pollo.jpeg
-│   ├── 07_Gorditas.jpeg
-│   ├── 08_Arrachera.jpeg
-│   ├── 09_Cafe_de_Olla.jpeg
-│   └── 10_Agua_de_Jamaica.jpeg
+├── Imágenes/                           ← 71 fotos de platillos en alta resolución (fuente de los base64 embebidos)
 └── README.md                           ← Este archivo
 ```
 
@@ -157,7 +154,9 @@ Los Arcos de Doña Julia/
 
 ## Contacto del restaurante
 
-- **Dirección:** Jardín Hidalgo No. 11, Villa de Pozos, S.L.P.
-- **Teléfonos:** (444) 824 0561 · (444) 300 9318
-- **Redes:** @losarcosdejulia (Facebook)
+Datos tal como aparecen en el pie de página de `index.html`:
+
+- **Dirección:** Jardín Hidalgo No. 11, Villa de Pozos, S.L.P. · C.P. 78421
+- **WhatsApp:** 444 300 9318
+- **Horario:** 7:00 – 17:00 hrs
 - **Avalado por:** Turismo Municipal de Villa de Pozos
