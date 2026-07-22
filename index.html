@@ -648,16 +648,18 @@ display: flex;
       var editData = {};
       var customImages = {};
 
-      function loadImages() {
-        try {
-          var saved = localStorage.getItem('arcos_images_v1');
-          customImages = saved ? JSON.parse(saved) : {};
-        } catch (e) { customImages = {}; }
+      // ── Almacenamiento compartido (Netlify Blobs) ──
+      var API = '/.netlify/functions/store';
+      var adminToken = null;
+
+      function loadImages(cb) {
+        fetch(API + '?key=images')
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) { customImages = data || {}; if (cb) cb(); })
+          .catch(function () { customImages = {}; if (cb) cb(); });
       }
 
-      function saveImages() {
-        try { localStorage.setItem('arcos_images_v1', JSON.stringify(customImages)); } catch (e) { }
-      }
+      function saveImages() { postData('images', customImages); }
 
       function getItemImage(id) {
         return customImages[id] || ITEM_IMAGES[id] || null;
@@ -683,18 +685,32 @@ display: flex;
 
       function getItems() { return menuItems || INITIAL_ITEMS; }
 
-      function loadItems() {
-        try {
-          var saved = localStorage.getItem('arcos_menu_v1');
-          menuItems = saved ? JSON.parse(saved) : INITIAL_ITEMS.map(function (i) { return Object.assign({}, i); });
-        } catch (e) {
-          menuItems = INITIAL_ITEMS.map(function (i) { return Object.assign({}, i); });
-        }
-        loadImages();
+      function loadItems(cb) {
+        fetch(API + '?key=menu')
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            menuItems = (data && data.length) ? data : INITIAL_ITEMS.map(function (i) { return Object.assign({}, i); });
+            if (cb) cb();
+          })
+          .catch(function () {
+            menuItems = INITIAL_ITEMS.map(function (i) { return Object.assign({}, i); });
+            if (cb) cb();
+          });
       }
 
-      function saveItems() {
-        try { localStorage.setItem('arcos_menu_v1', JSON.stringify(menuItems)); } catch (e) { }
+      function saveItems() { postData('menu', menuItems); }
+
+      function postData(key, data) {
+        if (!adminToken) return;
+        fetch(API + '?key=' + key, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: adminToken, data: data })
+        }).then(function (r) {
+          if (!r.ok) alert('No se pudo guardar en el servidor. Revisa tu conexión e intenta de nuevo.');
+        }).catch(function () {
+          alert('No se pudo guardar en el servidor. Revisa tu conexión e intenta de nuevo.');
+        });
       }
 
       // ── Screens ──
@@ -703,6 +719,11 @@ display: flex;
         document.getElementById('screen-' + id).classList.add('active');
         var fab = document.getElementById('whatsapp-fab');
         if (fab) fab.style.display = (id === 'menu' || id === 'welcome') ? 'flex' : 'none';
+      }
+
+      function isActive(id) {
+        var el = document.getElementById('screen-' + id);
+        return el && el.classList.contains('active');
       }
 
       // ── Escape HTML ──
@@ -978,7 +999,14 @@ display: flex;
 
       // ── Event bindings ──
       function init() {
-        loadItems();
+        loadItems(function () {
+          if (isActive('menu')) renderMenu();
+          if (isActive('admin')) renderAdmin();
+        });
+        loadImages(function () {
+          if (isActive('menu')) renderMenu();
+          if (isActive('admin')) renderAdmin();
+        });
 
         // Welcome → Menu
         document.getElementById('btn-ver-menu').addEventListener('click', function () {
@@ -1047,6 +1075,7 @@ display: flex;
           e.preventDefault();
           var pw = document.getElementById('admin-pw').value;
           if (pw === 'admin1234arcos') {
+            adminToken = pw;
             showScreen('admin');
             renderAdmin();
           } else {
